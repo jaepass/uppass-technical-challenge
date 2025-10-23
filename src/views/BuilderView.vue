@@ -241,7 +241,8 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Min Value</label>
                         <input
                           type="number"
-                          v-model.number="selectedItem.validation.min"
+                          :value="selectedItem?.validation?.min"
+                          @input="updateNumberValidation('min', $event)"
                           class="block w-full rounded-md border-0 px-3 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
                         />
                       </div>
@@ -249,7 +250,8 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Max Value</label>
                         <input
                           type="number"
-                          v-model.number="selectedItem.validation.max"
+                          :value="selectedItem?.validation?.max"
+                          @input="updateNumberValidation('max', $event)"
                           class="block w-full rounded-md border-0 px-3 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
                         />
                       </div>
@@ -259,7 +261,7 @@
                         <input
                           type="checkbox"
                           :checked="selectedItem.props?.allowDecimal"
-                          @change="toggleAllowDecimal"
+                          @input="toggleAllowDecimal($event)"
                           class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                         />
                       </div>
@@ -272,8 +274,8 @@
                     <div class="flex h-6 items-center">
                       <input
                         type="checkbox"
-                        :checked="selectedItem.validation?.required"
-                        @change="toggleRequired"
+                        :checked="selectedItem?.validation?.required"
+                        @input="toggleRequired"
                         class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                       />
                     </div>
@@ -342,8 +344,8 @@ import {
   CheckCircleIcon
 } from '@heroicons/vue/24/outline'
 import { useRouter } from 'vue-router'
-import SchemaViewer from '../components/schema/SchemaViewer.vue'
-import SchemaImporter from '../components/schema/SchemaImporter.vue'
+import * as SchemaViewer from '../components/schema/SchemaViewer.vue'
+import * as SchemaImporter from '../components/schema/SchemaImporter.vue'
 import { 
   CursorArrowRaysIcon, 
   XMarkIcon, 
@@ -353,7 +355,7 @@ import {
   ListBulletIcon 
 } from '@heroicons/vue/24/solid'
 import { useFormBuilderStore } from '../stores/builder'
-import type { FormField, FormComponent, FormSchema } from '../types/form'
+import type { FormField, FormComponent } from '../types/form'
 import { validateAndNormalizeSchema } from '../utils/schema'
 
 const store = useFormBuilderStore()
@@ -530,30 +532,46 @@ const getComponentIcon = (type: string) => {
 }
 
 // Validation methods
-  const toggleRequired = (event: Event) => {
-    if (!selectedItem.value || !store.schema) return
-    const checked = (event.target as HTMLInputElement).checked
-    store.updateItem(selectedItem.value.id, {
-      ...selectedItem.value,
-      validation: {
-        ...(selectedItem.value.validation || {}),
-        required: checked
-      }
-    })
-  }
+const updateNumberValidation = (field: 'min' | 'max', event: Event) => {
+  if (!selectedItem.value || !store.schema) return
+  const value = (event.target as HTMLInputElement).value
+  const numberValue = value === '' ? undefined : Number(value)
+  
+  store.updateItem(selectedItem.value.id, {
+    ...selectedItem.value,
+    validation: {
+      ...(selectedItem.value.validation || {}),
+      [field]: numberValue
+    }
+  })
+}
 
-  const toggleAllowDecimal = (event: Event) => {
-    if (!selectedItem.value || selectedItem.value.type !== 'Number' || !store.schema) return
-    const checked = (event.target as HTMLInputElement).checked
-    const currentProps = selectedItem.value.props || {}
-    store.updateItem(selectedItem.value.id, {
-      ...selectedItem.value,
-      props: {
-        ...currentProps,
-        allowDecimal: checked
-      }
-    })
-  }// Radio field methods
+const toggleRequired = (event: Event) => {
+  if (!selectedItem.value || !store.schema) return
+  const checked = (event.target as HTMLInputElement).checked
+  store.updateItem(selectedItem.value.id, {
+    ...selectedItem.value,
+    validation: {
+      ...(selectedItem.value.validation || {}),
+      required: checked
+    }
+  })
+}
+
+const toggleAllowDecimal = (event: Event) => {
+  if (!selectedItem.value || selectedItem.value.type !== 'Number' || !store.schema) return
+  const checked = (event.target as HTMLInputElement).checked
+  const currentProps = selectedItem.value.props || {}
+  store.updateItem(selectedItem.value.id, {
+    ...selectedItem.value,
+    props: {
+      ...currentProps,
+      allowDecimal: checked
+    }
+  })
+}
+
+// Radio field methods
 const updateRadioOptions = () => {
   if (!selectedItem.value || selectedItem.value.type !== 'Radio' || !store.schema || !selectedItem.value.options) return
   
@@ -607,8 +625,18 @@ const showSchemaViewer = ref(false)
 const showSchemaImporter = ref(false)
 
 const importSchema = (schema: Record<string, any>) => {
-  const normalizedSchema = validateAndNormalizeSchema(schema)
-  store.setSchema(normalizedSchema)
+  try {
+    const normalizedSchema = validateAndNormalizeSchema(schema)
+    store.setSchema(normalizedSchema)
+  } catch (err) {
+    notification.value = {
+      show: true,
+      message: err instanceof Error ? err.message : 'Invalid schema format'
+    }
+    setTimeout(() => {
+      notification.value.show = false
+    }, 3000)
+  }
 }
 </script>
 

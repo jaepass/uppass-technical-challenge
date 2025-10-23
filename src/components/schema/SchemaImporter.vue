@@ -29,7 +29,7 @@
               </DialogTitle>
 
               <div class="mt-4">
-                <TabGroup as="div" v-model="activeTab" defaultIndex={0}>
+                <TabGroup as="div" v-model="activeTab">
                   <TabList class="flex space-x-1 rounded-xl bg-gray-100 p-1">
                     <Tab
                       v-for="tab in tabs"
