@@ -20,7 +20,7 @@
 <script setup lang="ts">
 import BaseField from './BaseField.vue'
 
-const props = defineProps<{
+defineProps<{
   id: string
   label?: string
   modelValue: number | null

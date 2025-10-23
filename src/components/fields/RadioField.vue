@@ -53,7 +53,7 @@ interface Option {
   value: string | number
 }
 
-const props = defineProps<{
+defineProps<{
   id: string
   label?: string
   modelValue: string | number | null

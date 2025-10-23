@@ -179,9 +179,7 @@ const tabs = [
 const pastedJson = ref('')
 const jsonError = ref('')
 const uploadedFile = ref<File | null>(null)
-
-// Track active tab for validation
-const activeTab = ref(0)  // Change to number for tab index
+const activeTab = ref<number>(0)
 
 // Watch for tab changes
 watch(activeTab, () => {

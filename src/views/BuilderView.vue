@@ -418,31 +418,38 @@ const selectedItem = computed(() => store.selectedItem)
 const hasItems = computed(() => store.hasItems)
 
 // Methods
-const cloneComponent = (component: FormComponent): FormField => {
-  const id = `${component.id}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-  const newComponent = {
-    id,
-    name: id,
-    type: component.type,
-    display: {
-      label: component.label,
-      placeholder: `Enter ${component.label.toLowerCase()}`
-    },
-    validation: {
-      required: false,
-      min: component.type === 'Number' ? undefined : undefined,
-      max: component.type === 'Number' ? undefined : undefined
-    },
-    props: {
-      allowDecimal: component.type === 'Number' ? false : undefined
-    },
-    options: component.type === 'Radio' ? [
-      { label: 'Option 1', value: '1' },
-      { label: 'Option 2', value: '2' }
-    ] : undefined
-  }
-  store.addItem(newComponent)
-  return newComponent
+  const cloneComponent = (component: FormComponent): FormField => {
+    const id = `${component.id}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    const baseValidation = {
+      required: false
+    }
+
+    // Add type-specific validation
+    const validation = component.type === 'Number' 
+      ? { ...baseValidation, min: undefined, max: undefined }
+      : baseValidation
+
+    const newComponent = {
+      id,
+      name: id,
+      type: component.type,
+      display: {
+        label: component.label,
+        placeholder: `Enter ${component.label.toLowerCase()}`
+      },
+      validation,
+      props: component.type === 'Number' 
+        ? { allowDecimal: false } 
+        : {},
+      options: component.type === 'Radio' 
+        ? [
+            { label: 'Option 1', value: '1' },
+            { label: 'Option 2', value: '2' }
+          ] 
+        : undefined
+    }
+    store.addItem(newComponent)
+    return newComponent
 }
 
 const selectItem = (id: string | null) => {
@@ -517,41 +524,54 @@ const getComponentIcon = (type: string) => {
   const toggleRequired = (event: Event) => {
     if (!selectedItem.value || !store.schema) return
     const checked = (event.target as HTMLInputElement).checked
+    const currentValidation = selectedItem.value.validation || {}
     store.updateItem(selectedItem.value.id, {
       ...selectedItem.value,
       validation: {
-        ...selectedItem.value.validation,
+        ...currentValidation,
         required: checked
       }
     })
   }
 
   const toggleAllowDecimal = (event: Event) => {
-    if (!selectedItem.value || !store.schema) return
+    if (!selectedItem.value || selectedItem.value.type !== 'Number' || !store.schema) return
     const checked = (event.target as HTMLInputElement).checked
+    const currentProps = selectedItem.value.props || {}
     store.updateItem(selectedItem.value.id, {
       ...selectedItem.value,
       props: {
-        ...selectedItem.value.props,
+        ...currentProps,
         allowDecimal: checked
       }
     })
   }// Radio field methods
 const updateRadioOptions = () => {
-  if (!selectedItem.value || !store.schema) return
+  if (!selectedItem.value || selectedItem.value.type !== 'Radio' || !store.schema || !selectedItem.value.options) return
+  
+  // Ensure all options have both label and value
+  const validOptions = selectedItem.value.options.map(option => ({
+    label: option.label || '',
+    value: option.value || ''
+  }))
+
   store.updateItem(selectedItem.value.id, {
-    ...selectedItem.value
+    ...selectedItem.value,
+    options: validOptions
   })
 }
 
 const addRadioOption = () => {
-  if (!selectedItem.value || !store.schema) return
-  const options = selectedItem.value.options || []
+  if (!selectedItem.value || selectedItem.value.type !== 'Radio' || !store.schema) return
+  const options = [...(selectedItem.value.options || [])]
   const newIndex = options.length + 1
+  
+  // Add new option with unique value
   options.push({
     label: `Option ${newIndex}`,
-    value: newIndex.toString()
+    value: `option_${Date.now()}_${newIndex}`
   })
+  
   store.updateItem(selectedItem.value.id, {
     ...selectedItem.value,
     options
@@ -559,9 +579,16 @@ const addRadioOption = () => {
 }
 
 const removeRadioOption = (index: number) => {
-  if (!selectedItem.value || !store.schema || !selectedItem.value.options) return
+  if (!selectedItem.value || selectedItem.value.type !== 'Radio' || !store.schema || !selectedItem.value.options) return
+  
+  // Ensure we have at least one option remaining
+  if (selectedItem.value.options.length <= 1) {
+    return
+  }
+  
   const options = [...selectedItem.value.options]
   options.splice(index, 1)
+  
   store.updateItem(selectedItem.value.id, {
     ...selectedItem.value,
     options

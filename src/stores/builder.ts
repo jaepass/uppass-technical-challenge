@@ -2,14 +2,6 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { FormSchema, FormField, FormData } from '../types/form'
 
-interface FormBuilderState {
-  schema: FormSchema | null
-  selectedItemId: string | null
-  history: FormSchema[]
-  currentHistoryIndex: number
-  formData: FormData
-}
-
 export const useFormBuilderStore = defineStore(
   'formBuilder',
   () => {
@@ -128,8 +120,5 @@ export const useFormBuilderStore = defineStore(
       redo,
       updateFormData
     }
-  },
-  {
-    persist: true
   }
 )
