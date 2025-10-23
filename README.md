@@ -116,4 +116,4 @@ To import the test schema from the repository:
 
 ## 🌐 Deployment
 
-This project is deployed on [Vercel] and can be accessed at [deployment-url].
+This project is deployed on [Vercel](https://vercel.com/) and can be accessed at [uppass-technical-challenge.vercel.app](https://uppass-technical-challenge.vercel.app/).
