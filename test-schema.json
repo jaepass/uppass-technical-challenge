@@ -1,0 +1,46 @@
+{
+  "id": "leave-form",
+  "name": "Leave Form",
+  "label": "Leave form",
+  "description": "A test form with various field types",
+  "items": {
+    "text_1": {
+      "id": "text_1",
+      "name": "full_name",
+      "type": "Text",
+      "display": {
+        "label": "Full Name",
+        "placeholder": "Enter your full name"
+      },
+      "validation": {
+        "required": true
+      }
+    },
+    "radio_1": {
+      "id": "radio_1",
+      "name": "Half or full Day",
+      "type": "Radio",
+      "display": {
+        "label": "Half or full Day"
+      },
+      "validation": {
+        "required": true
+      }
+    },
+    "number_1": {
+      "id": "number_1",
+      "name": "days_off",
+      "type": "Number",
+      "display": {
+        "label": "How many days off?",
+        "placeholder": "Enter the days off"
+      },
+      "validation": {
+        "min": 1,
+        "max": 1000000,
+        "allowDecimals": false,
+        "required": false
+      }
+    }
+  }
+}
