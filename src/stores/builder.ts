@@ -72,7 +72,16 @@ export const useFormBuilderStore = defineStore(
       selectedItemId.value = itemId
     }
     
-    function exportSchema(): FormSchema | null {
+    function exportSchema(): FormSchema {
+      if (!schema.value) {
+        return {
+          id: 'empty-form',
+          name: 'Empty Form',
+          label: 'Empty Form',
+          description: '',
+          items: {}
+        }
+      }
       return schema.value
     }
 

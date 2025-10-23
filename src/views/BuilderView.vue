@@ -353,7 +353,7 @@ import {
   ListBulletIcon 
 } from '@heroicons/vue/24/solid'
 import { useFormBuilderStore } from '../stores/builder'
-import type { FormField, FormFieldBase, FormComponent } from '../types/form'
+import type { FormField, FormComponent, FormSchema } from '../types/form'
 import { validateAndNormalizeSchema } from '../utils/schema'
 
 const store = useFormBuilderStore()
@@ -469,6 +469,15 @@ const saveForm = async () => {
   isSaving.value = true
   const schema = store.exportSchema()
   
+  if (!schema) {
+    isSaving.value = false
+    notification.value = { show: true, message: 'Error: No schema to save' }
+    setTimeout(() => {
+      notification.value.show = false
+    }, 3000)
+    return
+  }
+  
   try {
     // Simulate API call to save schema
     await new Promise(resolve => setTimeout(resolve, 1000))
@@ -524,11 +533,10 @@ const getComponentIcon = (type: string) => {
   const toggleRequired = (event: Event) => {
     if (!selectedItem.value || !store.schema) return
     const checked = (event.target as HTMLInputElement).checked
-    const currentValidation = selectedItem.value.validation || {}
     store.updateItem(selectedItem.value.id, {
       ...selectedItem.value,
       validation: {
-        ...currentValidation,
+        ...(selectedItem.value.validation || {}),
         required: checked
       }
     })
